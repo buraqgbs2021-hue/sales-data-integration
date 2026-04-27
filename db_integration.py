@@ -2,11 +2,9 @@ import pandas as pd
 from sqlalchemy import create_engine
 
 # --- CONFIGURATION ---
-# Replace 'password' with your real pgAdmin password
-# Replace 'sales_db' with the name of the database you created in pgAdmin4
 DB_SETTINGS = {
     "user": "postgres",
-    "password": "0000",
+    "password": "YOUR_PASSWORD_HERE", # Remember to use your real password!
     "host": "localhost",
     "port": "5432",
     "database": "your_practice_db"
@@ -18,14 +16,22 @@ def run_integration():
         conn_str = f"postgresql://{DB_SETTINGS['user']}:{DB_SETTINGS['password']}@{DB_SETTINGS['host']}:{DB_SETTINGS['port']}/{DB_SETTINGS['database']}"
         engine = create_engine(conn_str)
 
-        # 2. Load the CSV using Pandas (Anaconda standard)
+        # 2. Load the CSV
         df = pd.read_csv('sales_data.csv')
-        print("Successfully read CSV file.")
+        print("CSV loaded successfully.")
 
-        # 3. Push data to PostgreSQL
-        # This will create a table named 'cleaned_sales' automatically
-        df.to_sql('cleaned_sales', engine, if_exists='replace', index=False)
-        print("Professional Integration Complete: Data pushed to pgAdmin4!")
+        # --- NEW STEP: DATA TRANSFORMATION ---
+        # We are creating a new column by multiplying units and price
+        df['total_revenue'] = df['units_sold'] * df['unit_price']
+        
+        # We can also add a 'tax' column (e.g., 10%)
+        df['tax_amount'] = df['total_revenue'] * 0.10
+        
+        print("Calculations complete: Added Revenue and Tax columns.")
+
+        # 3. Push the ENHANCED data to PostgreSQL
+        df.to_sql('enhanced_sales', engine, if_exists='replace', index=False)
+        print("Professional Integration Complete: Enhanced data pushed to pgAdmin4!")
 
     except Exception as e:
         print(f"Error: {e}")
